@@ -2,20 +2,26 @@ package handlers
 
 import (
 	"Region-Simulator/internal/api/rest"
+	"Region-Simulator/internal/dto"
+	"Region-Simulator/internal/repository"
+	"Region-Simulator/internal/service"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
 )
 
 type userHandler struct {
-	//svc UserService
-
+	svc service.UserService
 }
 
 func SetupUserRoutes(rh *rest.RestHandler) {
 	app := rh.App
-
 	// Create an instance of user service & inject to handler
-	handler := userHandler{}
+	svc := service.UserService{
+		Repo: repository.NewUserRepository(rh.DB),
+	}
+	handler := userHandler{
+		svc: svc,
+	}
 
 	// Public endpoints
 	app.Post("/register", handler.Register)
@@ -36,14 +42,43 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 }
 
 func (h *userHandler) Register(ctx *fiber.Ctx) error {
+	// to create user
+	user := dto.UserSignUp{}
+	err := ctx.BodyParser(&user)
+	if err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "please provide valid inputs",
+		})
+	}
+	token, err := h.svc.Signup(user)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "error on signup",
+		})
+	}
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"message": "register",
+		"message": token,
 	})
 }
 
 func (h *userHandler) Login(ctx *fiber.Ctx) error {
+	loginInput := dto.UserLogin{}
+	err := ctx.BodyParser(&loginInput)
+	if err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "please provide valid inputs",
+		})
+	}
+	token, err := h.svc.Login(loginInput.Email, loginInput.Password)
+	if err != nil {
+		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Please provide the correct login information",
+		})
+	}
+
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "login",
+		"token":   token,
 	})
 }
 

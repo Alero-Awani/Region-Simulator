@@ -2,23 +2,52 @@ package service
 
 import (
 	"Region-Simulator/internal/domain"
+	"Region-Simulator/internal/dto"
+	"Region-Simulator/internal/repository"
+	"errors"
+	"fmt"
+	"log"
 )
 
 type UserService struct {
+	Repo repository.UserRepository
 }
 
 func (s UserService) findUserByEmail(email string) (*domain.User, error) {
-	// perform somedb operation
-	//business logic
-	return nil, nil
+
+	user, err := s.Repo.FindUser(email)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
 
-func (s UserService) Signup(input any) (string, error) {
-	return "", nil
+func (s UserService) Signup(input dto.UserSignUp) (string, error) {
+	log.Println(input)
+
+	user, err := s.Repo.CreateUser(domain.User{
+		Email:    input.Email,
+		Password: input.Password,
+		Phone:    input.Phone,
+	})
+
+	// generate token
+	log.Println(user)
+	userInfo := fmt.Sprintf("%v, %v, %v", user.ID, user.Email, user.UserType)
+
+	return userInfo, err
 }
 
-func (s UserService) Login(input any) (string, error) {
-	return "", nil
+func (s UserService) Login(email string, password string) (string, error) {
+	user, err := s.findUserByEmail(email)
+	if err != nil {
+		return "", errors.New("user does not exist with the provided email id")
+	}
+
+	// compare password and generate token
+
+	return user.Email, nil
 }
 
 func (s UserService) GetVerificationCode(e domain.User) (int, error) {
