@@ -15,6 +15,12 @@ type Auth struct {
 	Secret string
 }
 
+func SetupAuth(s string) Auth {
+	return Auth{
+		Secret: s,
+	}
+}
+
 func (a Auth) CreateHashedPassword(p string) (string, error) {
 	if len(p) < 6 {
 		return "", errors.New("password must be at least 6 characters long")
@@ -63,7 +69,7 @@ func (a Auth) VerifyToken(t string) (domain.User, error) {
 	}
 	tokenStr := tokenArr[1]
 
-	if tokenStr != "Bearer" {
+	if tokenArr[0] != "Bearer" {
 		return domain.User{}, errors.New("invalid token")
 	}
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
@@ -95,20 +101,28 @@ func (a Auth) VerifyToken(t string) (domain.User, error) {
 // Confirm if we have verified token or not
 
 func (a Auth) Authorize(ctx *fiber.Ctx) error {
+
 	authHeader := ctx.GetReqHeaders()["Authorization"]
-	user, err := a.VerifyToken(authHeader)
+	if len(authHeader) < 1 {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "You are not authorized",
+			"reason":  "Authorization required",
+		})
+	}
+
+	user, err := a.VerifyToken(authHeader[0])
 	if err == nil && user.ID > 0 {
 		ctx.Locals("user", user)
 		return ctx.Next()
 	} else {
 		return ctx.Status(401).JSON(&fiber.Map{
-			"message": "Unauthorized",
-			"reason":  err,,
+			"message": "Authorization Failed",
+			"reason":  err,
 		})
 	}
-	return nil
 }
 
 func (a Auth) GetCurrentUser(ctx *fiber.Ctx) domain.User {
-	return domain.User{}
+	user := ctx.Locals("user")
+	return user.(domain.User)
 }

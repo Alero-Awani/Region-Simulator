@@ -6,6 +6,7 @@ import (
 	"Region-Simulator/internal/repository"
 	"Region-Simulator/internal/service"
 	"github.com/gofiber/fiber/v2"
+	"log"
 	"net/http"
 )
 
@@ -18,27 +19,31 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 	// Create an instance of user service & inject to handler
 	svc := service.UserService{
 		Repo: repository.NewUserRepository(rh.DB),
+		Auth: rh.Auth,
 	}
 	handler := userHandler{
 		svc: svc,
 	}
 
+	pubRoutes := app.Group("/users")
+
 	// Public endpoints
-	app.Post("/register", handler.Register)
-	app.Post("/login", handler.Login)
+	pubRoutes.Post("/register", handler.Register)
+	pubRoutes.Post("/login", handler.Login)
 
+	pvtRoutes := pubRoutes.Group("/", rh.Auth.Authorize)
 	// Private endpoints
-	app.Get("/verify", handler.GetVerificationCode)
-	app.Post("/verify", handler.Verify)
-	app.Post("/profile", handler.CreateProfile)
-	app.Get("/profile", handler.GetProfile)
+	pvtRoutes.Get("/verify", handler.GetVerificationCode)
+	pvtRoutes.Post("/verify", handler.Verify)
+	pvtRoutes.Post("/profile", handler.CreateProfile)
+	pvtRoutes.Get("/profile", handler.GetProfile)
 
-	app.Post("/cart", handler.AddToCart)
-	app.Get("/cart", handler.GetCart)
-	app.Get("order", handler.GetOrders)
-	app.Get("/order/:id", handler.GetOrder)
+	pvtRoutes.Post("/cart", handler.AddToCart)
+	pvtRoutes.Get("/cart", handler.GetCart)
+	pvtRoutes.Get("order", handler.GetOrders)
+	pvtRoutes.Get("/order/:id", handler.GetOrder)
 
-	app.Post("/become-seller", handler.BecomeSeller)
+	pvtRoutes.Post("/become-seller", handler.BecomeSeller)
 }
 
 func (h *userHandler) Register(ctx *fiber.Ctx) error {
@@ -57,7 +62,8 @@ func (h *userHandler) Register(ctx *fiber.Ctx) error {
 		})
 	}
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"message": token,
+		"message": "Register",
+		"token":   token,
 	})
 }
 
@@ -77,7 +83,7 @@ func (h *userHandler) Login(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"message": "login",
+		"message": "Login",
 		"token":   token,
 	})
 }
@@ -101,8 +107,11 @@ func (h *userHandler) CreateProfile(ctx *fiber.Ctx) error {
 }
 
 func (h *userHandler) GetProfile(ctx *fiber.Ctx) error {
+	user := h.svc.Auth.GetCurrentUser(ctx)
+	log.Println(user)
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "get profile",
+		"user":    user,
 	})
 }
 

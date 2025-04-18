@@ -3,14 +3,14 @@ package service
 import (
 	"Region-Simulator/internal/domain"
 	"Region-Simulator/internal/dto"
+	"Region-Simulator/internal/helper"
 	"Region-Simulator/internal/repository"
 	"errors"
-	"fmt"
-	"log"
 )
 
 type UserService struct {
 	Repo repository.UserRepository
+	Auth helper.Auth
 }
 
 func (s UserService) findUserByEmail(email string) (*domain.User, error) {
@@ -24,19 +24,20 @@ func (s UserService) findUserByEmail(email string) (*domain.User, error) {
 }
 
 func (s UserService) Signup(input dto.UserSignUp) (string, error) {
-	log.Println(input)
+
+	hPassword, err := s.Auth.CreateHashedPassword(input.Password)
+	if err != nil {
+		return "", err
+	}
 
 	user, err := s.Repo.CreateUser(domain.User{
 		Email:    input.Email,
-		Password: input.Password,
+		Password: hPassword,
 		Phone:    input.Phone,
 	})
 
 	// generate token
-	log.Println(user)
-	userInfo := fmt.Sprintf("%v, %v, %v", user.ID, user.Email, user.UserType)
-
-	return userInfo, err
+	return s.Auth.GenerateToken(user.ID, user.Email, user.UserType)
 }
 
 func (s UserService) Login(email string, password string) (string, error) {
@@ -44,10 +45,13 @@ func (s UserService) Login(email string, password string) (string, error) {
 	if err != nil {
 		return "", errors.New("user does not exist with the provided email id")
 	}
+	err = s.Auth.VerifyPassword(password, user.Password)
+	if err != nil {
+		return "", err
+	}
+	// generate token
 
-	// compare password and generate token
-
-	return user.Email, nil
+	return s.Auth.GenerateToken(user.ID, user.Email, user.UserType)
 }
 
 func (s UserService) GetVerificationCode(e domain.User) (int, error) {

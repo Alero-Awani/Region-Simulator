@@ -5,6 +5,7 @@ import (
 	"Region-Simulator/internal/api/rest"
 	"Region-Simulator/internal/api/rest/handlers"
 	"Region-Simulator/internal/domain"
+	"Region-Simulator/internal/helper"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -23,9 +24,12 @@ func StartServer(config Config.AppConfig) {
 	// run migration
 	db.AutoMigrate(&domain.User{})
 
+	auth := helper.SetupAuth(config.AppSecret)
+
 	rh := &rest.RestHandler{
-		App: app,
-		DB:  db,
+		App:  app,
+		DB:   db,
+		Auth: auth,
 	}
 	setupRoutes(rh)
 	app.Listen(config.ServerPort)
