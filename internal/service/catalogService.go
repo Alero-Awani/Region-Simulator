@@ -1,15 +1,13 @@
-package rest
+package service
 
 import (
 	"Region-Simulator/config"
 	"Region-Simulator/internal/helper"
-	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
+	"Region-Simulator/internal/repository"
 )
 
-type RestHandler struct {
-	App    *fiber.App
-	DB     *gorm.DB
+type CatalogService struct {
+	Repo   repository.UserRepository
 	Auth   helper.Auth
 	Config config.AppConfig
 }

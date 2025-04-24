@@ -126,3 +126,34 @@ func (a Auth) GetCurrentUser(ctx *fiber.Ctx) domain.User {
 	user := ctx.Locals("user")
 	return user.(domain.User)
 }
+
+func (a Auth) GenerateCode() (int, error) {
+	return RandomNumbers(6)
+}
+
+func (a Auth) AuthorizeSeller(ctx *fiber.Ctx) error {
+
+	authHeader := ctx.GetReqHeaders()["Authorization"]
+	if len(authHeader) < 1 {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "You are not authorized",
+			"reason":  "Authorization required",
+		})
+	}
+
+	user, err := a.VerifyToken(authHeader[0])
+	if err != nil {
+		return ctx.Status(401).JSON(&fiber.Map{
+			"message": "Authorization Failed",
+			"reason":  err,
+		})
+	} else if user.ID > 0 && user.UserType == domain.SELLER {
+		ctx.Locals("user", user)
+		return ctx.Next()
+	} else {
+		return ctx.Status(401).JSON(&fiber.Map{
+			"message": "Authorization Failed",
+			"reason":  errors.New("please join the seller program to manage products"),
+		})
+	}
+}

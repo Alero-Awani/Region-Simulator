@@ -1,4 +1,4 @@
-package Config
+package config
 
 import (
 	"errors"
@@ -7,9 +7,12 @@ import (
 )
 
 type AppConfig struct {
-	ServerPort string
-	Dsn        string
-	AppSecret  string
+	ServerPort            string
+	Dsn                   string
+	AppSecret             string
+	TwilioAccountSid      string
+	TwilioAuthToken       string
+	TwilioFromPhoneNumber string
 }
 
 // function to read environment variables and return application struct
@@ -34,5 +37,10 @@ func SetupEnv() (cfg AppConfig, err error) {
 	if len(appSecret) < 1 {
 		return AppConfig{}, errors.New("env variables not found")
 	}
-	return AppConfig{ServerPort: httpPort, Dsn: Dsn, AppSecret: appSecret}, nil
+
+	return AppConfig{ServerPort: httpPort, Dsn: Dsn, AppSecret: appSecret,
+		TwilioAccountSid:      os.Getenv("TWILIO_ACCOUNT_SID"),
+		TwilioAuthToken:       os.Getenv("TWILIO_AUTH_TOKEN"),
+		TwilioFromPhoneNumber: os.Getenv("TWILIO_FROM_PHONE_NUMBER"),
+	}, nil
 }

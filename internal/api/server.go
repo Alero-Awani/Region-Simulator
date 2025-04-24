@@ -1,7 +1,7 @@
 package api
 
 import (
-	"Region-Simulator/Config"
+	"Region-Simulator/config"
 	"Region-Simulator/internal/api/rest"
 	"Region-Simulator/internal/api/rest/handlers"
 	"Region-Simulator/internal/domain"
@@ -12,24 +12,30 @@ import (
 	"log"
 )
 
-func StartServer(config Config.AppConfig) {
+func StartServer(config config.AppConfig) {
 	app := fiber.New()
 
 	db, err := gorm.Open(postgres.Open(config.Dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v\n", err)
 	}
-	log.Println("Connected to database")
+	log.Println("Database Connected")
 
 	// run migration
-	db.AutoMigrate(&domain.User{})
+	err = db.AutoMigrate(&domain.User{}, &domain.BankAccount{})
+	if err != nil {
+		log.Fatalf("error on running the migration: %v\n", err)
+	}
+
+	log.Println("Migration was successful")
 
 	auth := helper.SetupAuth(config.AppSecret)
 
 	rh := &rest.RestHandler{
-		App:  app,
-		DB:   db,
-		Auth: auth,
+		App:    app,
+		DB:     db,
+		Auth:   auth,
+		Config: config,
 	}
 	setupRoutes(rh)
 	app.Listen(config.ServerPort)

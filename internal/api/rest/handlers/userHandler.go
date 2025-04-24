@@ -18,8 +18,9 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 	app := rh.App
 	// Create an instance of user service & inject to handler
 	svc := service.UserService{
-		Repo: repository.NewUserRepository(rh.DB),
-		Auth: rh.Auth,
+		Repo:   repository.NewUserRepository(rh.DB),
+		Auth:   rh.Auth,
+		Config: rh.Config,
 	}
 	handler := userHandler{
 		svc: svc,
@@ -89,14 +90,43 @@ func (h *userHandler) Login(ctx *fiber.Ctx) error {
 }
 
 func (h *userHandler) Verify(ctx *fiber.Ctx) error {
+	user := h.svc.Auth.GetCurrentUser(ctx)
+
+	// request to accept the verification code
+	var req dto.VerificationCodeInput
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "please provide a valid input",
+		})
+	}
+
+	err := h.svc.VerifyCode(user.ID, req.Code)
+	if err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"message": "verify",
+		"message": "Verified Successfully",
 	})
 }
 
 func (h *userHandler) GetVerificationCode(ctx *fiber.Ctx) error {
+
+	user := h.svc.Auth.GetCurrentUser(ctx)
+
+	// Create the verification Code and update the user profile in DB
+	err := h.svc.GetVerificationCode(user)
+
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "unable to get verification code",
+		})
+	}
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"message": "get the verification code",
+		"message": "the user now has a verification code",
 	})
 }
 
@@ -146,7 +176,28 @@ func (h *userHandler) GetOrder(ctx *fiber.Ctx) error {
 }
 
 func (h *userHandler) BecomeSeller(ctx *fiber.Ctx) error {
+
+	user := h.svc.Auth.GetCurrentUser(ctx)
+
+	req := dto.SellerInput{}
+	err := ctx.BodyParser(&req)
+	if err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "request parameters are not valid",
+		})
+	}
+
+	token, err := h.svc.BecomeSeller(user.ID, req)
+	if err != nil {
+		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Failed to become seller",
+		})
+	}
+
+	// Convert User to Seller
+
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "become seller",
+		"token":   token,
 	})
 }
