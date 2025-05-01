@@ -5,6 +5,7 @@ import (
 	"Region-Simulator/internal/dto"
 	"Region-Simulator/internal/repository"
 	"Region-Simulator/internal/service"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"log"
 	"net/http"
@@ -12,6 +13,19 @@ import (
 
 type userHandler struct {
 	svc service.UserService
+}
+
+type Student struct {
+	age   int
+	name  string
+	class string
+}
+
+func (s *Student) NewStudent(age int, name, class string) error {
+	s.age = age
+	s.name = name
+	fmt.Println("student new student")
+	return nil
 }
 
 func SetupUserRoutes(rh *rest.RestHandler) {
