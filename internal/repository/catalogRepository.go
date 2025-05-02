@@ -13,7 +13,7 @@ type CatalogRepository interface {
 	FindCategories() ([]*domain.Category, error)
 	FindCategoryByID(id int) (*domain.Category, error)
 	EditCategory(e *domain.Category) (*domain.Category, error)
-	DeleteCategory(id uint) error
+	DeleteCategory(id int) error
 }
 
 type catalogRepository struct {
@@ -59,7 +59,7 @@ func (c catalogRepository) EditCategory(e *domain.Category) (*domain.Category, e
 	return e, nil
 }
 
-func (c catalogRepository) DeleteCategory(id uint) error {
+func (c catalogRepository) DeleteCategory(id int) error {
 	err := c.db.Delete(&domain.Category{}, id).Error
 
 	if err != nil {

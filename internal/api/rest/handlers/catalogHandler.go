@@ -78,7 +78,7 @@ func (h *catalogHandler) CreateCategories(ctx *fiber.Ctx) error {
 	return rest.SuccessResponse(ctx, "category created successfully", nil)
 }
 
-func (h *catalogHandler) EditCategory(ctx *fiber.Ctx) (error {
+func (h *catalogHandler) EditCategory(ctx *fiber.Ctx) error {
 	id, _ := strconv.Atoi(ctx.Params("id"))
 
 	req := dto.CreateCategoryRequest{}
@@ -95,6 +95,11 @@ func (h *catalogHandler) EditCategory(ctx *fiber.Ctx) (error {
 }
 
 func (h *catalogHandler) DeleteCategory(ctx *fiber.Ctx) error {
+	id, _ := strconv.Atoi(ctx.Params("id"))
+	err := h.svc.DeleteCategory(id)
+	if err != nil {
+		return rest.InternalError(ctx, err)
+	}
 	return rest.SuccessResponse(ctx, "delete category endpoint", nil)
 }
 
