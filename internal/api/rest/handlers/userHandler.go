@@ -7,6 +7,7 @@ import (
 	"Region-Simulator/internal/service"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pkg/errors"
 	"log"
 	"net/http"
 )
@@ -33,6 +34,7 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 	// Create an instance of user service & inject to handler
 	svc := service.UserService{
 		Repo:   repository.NewUserRepository(rh.DB),
+		CRepo:  repository.NewCatalogRepository(rh.DB),
 		Auth:   rh.Auth,
 		Config: rh.Config,
 	}
@@ -145,6 +147,21 @@ func (h *userHandler) GetVerificationCode(ctx *fiber.Ctx) error {
 }
 
 func (h *userHandler) CreateProfile(ctx *fiber.Ctx) error {
+	user := h.svc.Auth.GetCurrentUser(ctx)
+
+	req := dto.ProfileInput{}
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "please provide valid inputs",
+		})
+	}
+	log.Printf("User: %v", user)
+	err := h.svc.CreateProfile(user.ID, req)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "unable to create profile",
+		})
+	}
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "create profile",
 	})
@@ -153,21 +170,68 @@ func (h *userHandler) CreateProfile(ctx *fiber.Ctx) error {
 func (h *userHandler) GetProfile(ctx *fiber.Ctx) error {
 	user := h.svc.Auth.GetCurrentUser(ctx)
 	log.Println(user)
+
+	profile, err := h.svc.GetProfile(user.ID)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "unable to get profile",
+		})
+	}
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "get profile",
-		"user":    user,
+		"profile": profile,
+	})
+}
+
+func (h *userHandler) UpdateProfile(ctx *fiber.Ctx) error {
+	user := h.svc.Auth.GetCurrentUser(ctx)
+	req := dto.ProfileInput{}
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "please provide valid inputs",
+		})
+	}
+	profile, err := h.svc.UpdateProfile(user.ID, req)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "unable to update profile",
+		})
+	}
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "profile updated successfully",
+		"profile": profile,
 	})
 }
 
 func (h *userHandler) AddToCart(ctx *fiber.Ctx) error {
-	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"message": "add to cart",
-	})
+	req := dto.CreateCartRequest{}
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "please  provide a valid product and qty",
+		})
+	}
+	user := h.svc.Auth.GetCurrentUser(ctx)
+	log.Println(user)
+
+	// call user service and perform create cart
+	cartItems, err := h.svc.CreateCart(req, user)
+	if err != nil {
+		return rest.InternalError(ctx, err)
+	}
+	return rest.SuccessResponse(ctx, "cart created successfully", cartItems)
 }
 
 func (h *userHandler) GetCart(ctx *fiber.Ctx) error {
+
+	user := h.svc.Auth.GetCurrentUser(ctx)
+	cart, err := h.svc.FindCart(user.ID)
+	if err != nil {
+		return rest.InternalError(ctx, errors.New("cart does not exist"))
+	}
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "get cart",
+		"cart":    cart,
 	})
 }
 

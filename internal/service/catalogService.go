@@ -70,3 +70,26 @@ func (s CatalogService) GetCategory(id int) (*domain.Category, error) {
 	}
 	return category, nil
 }
+
+// Products
+
+func (s CatalogService) CreateProduct(input dto.CreateProductRequest, user domain.User) error {
+	err := s.Repo.CreateProduct(&domain.Product{
+		Name:        input.Name,
+		ImageUrl:    input.ImageUrl,
+		Description: input.Description,
+		CategoryId:  input.CategoryId,
+		Price:       input.Price,
+		Stock:       uint(input.Stock),
+		UserId:      user.ID,
+	})
+	return err
+}
+
+func (s CatalogService) GetProducts() ([]*domain.Product, error) {
+	products, err := s.Repo.FindProducts()
+	if err != nil {
+		return nil, errors.New("could not fetch products")
+	}
+	return products, nil
+}

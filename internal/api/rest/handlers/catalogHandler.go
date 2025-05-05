@@ -104,15 +104,32 @@ func (h *catalogHandler) DeleteCategory(ctx *fiber.Ctx) error {
 }
 
 func (h *catalogHandler) CreateProducts(ctx *fiber.Ctx) error {
-	return rest.SuccessResponse(ctx, "create product endpoint", nil)
+
+	user := h.svc.Auth.GetCurrentUser(ctx)
+
+	req := dto.CreateProductRequest{}
+	err := ctx.BodyParser(&req)
+	if err != nil {
+		return rest.BadRequestError(ctx, "create product request is not valid")
+	}
+	err = h.svc.CreateProduct(req, user)
+	if err != nil {
+		return rest.InternalError(ctx, err)
+	}
+	return rest.SuccessResponse(ctx, "product created successfully", nil)
 }
 
 func (h *catalogHandler) EditProducts(ctx *fiber.Ctx) error {
+
 	return rest.SuccessResponse(ctx, "edit product endpoint", nil)
 }
 
 func (h *catalogHandler) GetProducts(ctx *fiber.Ctx) error {
-	return rest.SuccessResponse(ctx, "get product endpoint", nil)
+	products, err := h.svc.GetProducts()
+	if err != nil {
+		return rest.ErrorMessage(ctx, 404, err)
+	}
+	return rest.SuccessResponse(ctx, "categories", products)
 }
 
 func (h *catalogHandler) GetProduct(ctx *fiber.Ctx) error {
