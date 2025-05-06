@@ -28,12 +28,13 @@ type AddressInput struct {
 	AddressLine1 string `json:"address_line_1"`
 	AddressLine2 string `json:"address_line_2"`
 	City         string `json:"city"`
-	PostCode     uint   `json:"post_code"`
+	PostCode     string `json:"post_code"`
 	Country      string `json:"country"`
 }
 
 type ProfileInput struct {
 	FirstName    string       `json:"first_name"`
 	LastName     string       `json:"last_name"`
+	Email        string       `json:"email"`
 	AddressInput AddressInput `json:"address"`
 }

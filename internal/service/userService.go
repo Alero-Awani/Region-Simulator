@@ -142,15 +142,86 @@ func (s UserService) VerifyCode(id uint, code int) error {
 }
 
 func (s UserService) CreateProfile(id uint, input dto.ProfileInput) error {
+
+	var user domain.User
+
+	if input.FirstName != "" {
+		user.FirstName = input.FirstName
+	}
+
+	if input.LastName != "" {
+		user.LastName = input.LastName
+	}
+	_, err := s.Repo.UpdateUser(id, user)
+
+	if err != nil {
+		return err
+	}
+
+	// create address
+	address := domain.Address{
+		AddressLine1: input.AddressInput.AddressLine1,
+		AddressLine2: input.AddressInput.AddressLine2,
+		City:         input.AddressInput.City,
+		Postcode:     input.AddressInput.PostCode,
+		Country:      input.AddressInput.Country,
+		UserId:       id,
+	}
+
+	// Patch address with the user model and create the user profile with the address
+	err = s.Repo.CreateAddress(address)
+	if err != nil {
+		return errors.New("unable to create address for the user profile")
+	}
 	return nil
 }
 
 func (s UserService) GetProfile(id uint) (*domain.User, error) {
-	return nil, nil
+
+	user, err := s.Repo.FindUserById(id)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
-func (s UserService) UpdateProfile(id uint, input dto.ProfileInput) (*domain.User, error) {
-	return nil, nil
+func (s UserService) UpdateProfile(id uint, input dto.ProfileInput) error {
+
+	// find the user
+	user, err := s.Repo.FindUserById(id)
+
+	if err != nil {
+		return err
+	}
+
+	if input.FirstName != "" {
+		user.FirstName = input.FirstName
+	}
+	if input.LastName != "" {
+		user.LastName = input.LastName
+	}
+
+	if input.Email != "" {
+		user.Email = input.Email
+	}
+	// Update the user details
+	_, err = s.Repo.UpdateUser(id, user)
+
+	// to update the user profile, you update the user details and address separately
+	address := domain.Address{
+		AddressLine1: input.AddressInput.AddressLine1,
+		AddressLine2: input.AddressInput.AddressLine2,
+		City:         input.AddressInput.City,
+		Postcode:     input.AddressInput.PostCode,
+		Country:      input.AddressInput.Country,
+		UserId:       id,
+	}
+
+	err = s.Repo.UpdateProfile(address)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s UserService) BecomeSeller(id uint, input dto.SellerInput) (string, error) {

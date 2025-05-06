@@ -5,7 +5,6 @@ import (
 	"Region-Simulator/internal/dto"
 	"Region-Simulator/internal/repository"
 	"Region-Simulator/internal/service"
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
 	"log"
@@ -14,19 +13,6 @@ import (
 
 type userHandler struct {
 	svc service.UserService
-}
-
-type Student struct {
-	age   int
-	name  string
-	class string
-}
-
-func (s *Student) NewStudent(age int, name, class string) error {
-	s.age = age
-	s.name = name
-	fmt.Println("student new student")
-	return nil
 }
 
 func SetupUserRoutes(rh *rest.RestHandler) {
@@ -54,9 +40,11 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 	pvtRoutes.Post("/verify", handler.Verify)
 	pvtRoutes.Post("/profile", handler.CreateProfile)
 	pvtRoutes.Get("/profile", handler.GetProfile)
+	pvtRoutes.Patch("/profile", handler.UpdateProfile)
 
 	pvtRoutes.Post("/cart", handler.AddToCart)
 	pvtRoutes.Get("/cart", handler.GetCart)
+
 	pvtRoutes.Get("order", handler.GetOrders)
 	pvtRoutes.Get("/order/:id", handler.GetOrder)
 
@@ -163,7 +151,7 @@ func (h *userHandler) CreateProfile(ctx *fiber.Ctx) error {
 		})
 	}
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"message": "create profile",
+		"message": "profile created successfully",
 	})
 }
 
@@ -191,7 +179,7 @@ func (h *userHandler) UpdateProfile(ctx *fiber.Ctx) error {
 			"message": "please provide valid inputs",
 		})
 	}
-	profile, err := h.svc.UpdateProfile(user.ID, req)
+	err := h.svc.UpdateProfile(user.ID, req)
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"message": "unable to update profile",
@@ -200,7 +188,6 @@ func (h *userHandler) UpdateProfile(ctx *fiber.Ctx) error {
 
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "profile updated successfully",
-		"profile": profile,
 	})
 }
 
