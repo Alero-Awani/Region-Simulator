@@ -9,15 +9,6 @@ RUN npm install --legacy-peer-deps
 # Copy all app files
 COPY . .
 
-# Accept build args
-ARG REACT_APP_BASE_URL
-ARG REACT_APP_PRODUCT_URL
-ARG REACT_APP_TRANSACTION_URL
-
-ENV REACT_APP_BASE_URL=$REACT_APP_BASE_URL
-ENV REACT_APP_PRODUCT_URL=$REACT_APP_PRODUCT_URL
-ENV REACT_APP_TRANSACTION_URL=$REACT_APP_TRANSACTION_URL
-
 # Build the app (skip if your dev script does this in-memory)
 RUN yarn build
 
