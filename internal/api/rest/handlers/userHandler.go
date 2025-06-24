@@ -5,10 +5,12 @@ import (
 	"Region-Simulator/internal/dto"
 	"Region-Simulator/internal/repository"
 	"Region-Simulator/internal/service"
-	"github.com/gofiber/fiber/v2"
-	"github.com/pkg/errors"
 	"log"
 	"net/http"
+	"strconv"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/pkg/errors"
 )
 
 type userHandler struct {
@@ -45,6 +47,7 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 	pvtRoutes.Post("/cart", handler.AddToCart)
 	pvtRoutes.Get("/cart", handler.GetCart)
 
+	pvtRoutes.Post("order", handler.CreateOrder)
 	pvtRoutes.Get("order", handler.GetOrders)
 	pvtRoutes.Get("/order/:id", handler.GetOrder)
 
@@ -223,20 +226,46 @@ func (h *userHandler) GetCart(ctx *fiber.Ctx) error {
 }
 
 func (h *userHandler) CreateOrder(ctx *fiber.Ctx) error {
+	user := h.svc.Auth.GetCurrentUser(ctx)
+	orderRef, err := h.svc.CreateOrder(user)
+	
+	if err != nil {
+		log.Println("Error creating order:", err)
+		return rest.InternalError(ctx, errors.New("unable to create order"))
+	}
+
+
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"message": "create order",
+		"message": "order created successfully",
+		"orderRef": orderRef,
 	})
 }
 
 func (h *userHandler) GetOrders(ctx *fiber.Ctx) error {
+	user := h.svc.Auth.GetCurrentUser(ctx)
+
+	orders, err := h.svc.GetOrders(user)
+	if err != nil {
+		return rest.InternalError(ctx, err)
+	}
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "get orders",
+		"order": orders,
 	})
 }
 
 func (h *userHandler) GetOrder(ctx *fiber.Ctx) error {
+	orderId, _ := strconv.Atoi(ctx.Params("id"))
+	user := h.svc.Auth.GetCurrentUser(ctx)
+
+	order, err := h.svc.GetOrderById(uint(orderId), user.ID)
+	if err != nil {
+		return rest.InternalError(ctx, err)
+	}
+
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "get order",
+		"order": order,
 	})
 }
 

@@ -6,11 +6,13 @@ import (
 	"Region-Simulator/internal/api/rest/handlers"
 	"Region-Simulator/internal/domain"
 	"Region-Simulator/internal/helper"
+	"log"
+	"os"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
 )
 
 func StartServer(config config.AppConfig) {
@@ -30,6 +32,9 @@ func StartServer(config config.AppConfig) {
 		&domain.Category{},
 		&domain.Product{},
 		&domain.Cart{},
+		&domain.Order{},
+		&domain.OrderItem{},	
+		&domain.Payment{},	
 	)
 	if err != nil {
 		log.Fatalf("error on running the migration: %v\n", err)
@@ -39,9 +44,9 @@ func StartServer(config config.AppConfig) {
 
 	// cors configuration
 	c := cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3030",
-		AllowHeaders: "Content-Type, Accept, Authorization",
-		AllowMethods: "GET, POST, OPTIONS, PUT, DELETE, PATCH",
+		AllowOrigins: os.Getenv("CORS_ALLOWED_ORIGINS"),
+		AllowHeaders: os.Getenv("CORS_ALLOWED_METHODS"),
+		AllowMethods: os.Getenv("CORS_ALLOWED_HEADERS"),
 	})
 	app.Use(c)
 
@@ -61,6 +66,9 @@ func setupRoutes(rh *rest.RestHandler) {
 	//user handler
 	handlers.SetupUserRoutes(rh)
 
-	// transactions
+	// transaction
+	handlers.SetupTransactionRoutes(rh)
+
+	// catalog
 	handlers.SetupCatalogRoutes(rh)
 }

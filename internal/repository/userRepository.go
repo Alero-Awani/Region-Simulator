@@ -3,9 +3,10 @@ package repository
 import (
 	"Region-Simulator/internal/domain"
 	"errors"
+	"log"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"log"
 )
 
 type UserRepository interface {
@@ -21,6 +22,11 @@ type UserRepository interface {
 	UpdateCart(c domain.Cart) error
 	DeleteCartById(id uint) error
 	DeleteCartItems(uId uint) error
+
+	// Order related methods
+	CreateOrder(o domain.Order) error
+	FindOrders(uId uint) ([]domain.Order, error)
+	FindOrderById(id uint, uId uint) (domain.Order, error)
 
 	CreateAddress(e domain.Address) error
 	UpdateProfile(e domain.Address) error
@@ -84,9 +90,7 @@ func (r userRepository) CreateBankAccount(e domain.BankAccount) error {
 	return r.db.Create(&e).Error
 }
 
-func NewUserRepository(db *gorm.DB) UserRepository {
-	return &userRepository{db: db}
-}
+
 
 func (r userRepository) CreateUser(usr domain.User) (domain.User, error) {
 	err := r.db.Create(&usr).Error
@@ -110,7 +114,11 @@ func (r userRepository) FindUser(email string) (domain.User, error) {
 func (r userRepository) FindUserById(id uint) (domain.User, error) {
 	var user domain.User
 
-	err := r.db.Preload("Address").First(&user, id).Error
+	err := r.db.Preload("Address").
+		Preload("Cart").
+		Preload("Orders").		
+		First(&user, id).Error
+		
 	if err != nil {
 		log.Printf("Find user error %v", err)
 		return domain.User{}, errors.New("user does not exist")
@@ -127,4 +135,38 @@ func (r userRepository) UpdateUser(id uint, u domain.User) (domain.User, error) 
 		return domain.User{}, errors.New("failed to update user")
 	}
 	return user, nil
+}
+
+func (r userRepository) CreateOrder(o domain.Order) error {
+	err := r.db.Create(&o).Error
+	if err != nil {
+		log.Printf("error on creating order %v", err)
+		return errors.New("failed to create order")
+	}
+	return nil
+}
+
+func (r userRepository) FindOrders(uId uint) ([]domain.Order, error) {
+ var orders []domain.Order
+ err := r.db.Where("user_id = ?", uId).Find(&orders).Error
+ if err != nil {
+	log.Printf("error on finding orders %v", err)
+	return nil, errors.New("failed to find orders")
+ }
+ return orders, nil
+}
+
+func (r userRepository) FindOrderById(id uint, uId uint) (domain.Order, error) {
+	var order domain.Order
+	err := r.db.Preload("Items").Where("id = ? AND user_id = ?", id, uId).First(&order).Error
+	if err != nil {
+		log.Printf("error on finding order by id %v", err)
+		return domain.Order{}, errors.New("failed to find order")
+	}
+	return order, nil
+}
+
+// New UserRepository creates a new instance of UserRepository
+func NewUserRepository(db *gorm.DB) UserRepository {
+	return &userRepository{db: db}
 }
