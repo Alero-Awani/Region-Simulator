@@ -12,6 +12,7 @@ on:
       - 'main.go'
       - 'Dockerfile'
       - '!k8s/**'
+      - '.github/workflows/backend-ci.yaml'
 
 jobs: 
   build_and_push:
