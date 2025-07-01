@@ -35,7 +35,7 @@ jobs:
       - name: Commit and push updated manifest
         run: |
           git config --local user.email "aleroawani18@gmail.com"
-          git config --local user.name "Alero Awani"
+          git config --local user.name "Alero Awani."
           git add golang-backend/deployment.yaml
           git commit -m "Update image tag to ${{ env.SHORT_SHA }}" || exit 0
           git push
