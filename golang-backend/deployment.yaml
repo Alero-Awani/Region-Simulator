@@ -30,11 +30,11 @@ spec:
           env:
             - name: ENV
               value: "production"
-            - name: DB_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: golang-backend-config
-                  key: DB_HOST
+            # - name: DB_HOST
+            #   valueFrom:
+            #     configMapKeyRef:
+            #       name: golang-backend-config
+            #       key: DB_HOST
             - name: DB_PORT
               valueFrom:
                 configMapKeyRef:
