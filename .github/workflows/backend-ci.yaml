@@ -7,6 +7,11 @@ on:
     branches:
       - 'main'
       - 'release'
+    paths:
+      - 'src/**'
+      - 'main.go'
+      - 'Dockerfile'
+      - '!k8s/**'
 
 jobs: 
   build_and_push:
