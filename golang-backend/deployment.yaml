@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: golang-app
-          image: aleroawani/ecommerce-backend:eb4f2b8
+          image: aleroawani/ecommerce-backend:57924f5
           ports:
             - containerPort: 9000
           # resources:
