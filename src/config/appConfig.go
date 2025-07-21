@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -37,6 +38,8 @@ func SetupEnv() (cfg AppConfig, err error) {
 	// }
 
 	// Production
+	log.Print("Loading database connection string from environment variables\n")
+	
 	dbHost := os.Getenv("DB_HOST")
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
