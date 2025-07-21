@@ -21,6 +21,7 @@ type AppConfig struct {
 // function to read environment variables and return application struct
 
 func SetupEnv() (cfg AppConfig, err error) {
+	log.Println("Getting Environment Variables from configmap")
 	if os.Getenv("APP_ENV") == "dev" {
 		godotenv.Load(".env")
 	}
