@@ -35,21 +35,33 @@ func SetupEnv() (cfg AppConfig, err error) {
 	// if len(Dsn) < 1 {
 	// 	return AppConfig{}, errors.New("env variables not found")
 	// }
+
 	// Production
-	Dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),		
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PORT"),
-	)
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	dbPort := os.Getenv("DB_PORT")
+
+	if dbHost == "" || dbUser == "" || dbPassword == "" || dbName == "" || dbPort == "" {
+		return AppConfig{}, errors.New("required database environment variables not found (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT)")
+	}
+
+	fmt.Printf("Database connection string: host=%s user=%s dbname=%s port=%s\n", 
+		dbHost, dbUser, dbName, dbPort) // Don't log password
+
+	Dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s")
+	fmt.Println(Dsn)
 
 	appSecret := os.Getenv("APP_SECRET")
 	if len(appSecret) < 1 {
 		return AppConfig{}, errors.New("env variables not found")
 	}
 
-	return AppConfig{ServerPort: httpPort, Dsn: Dsn, AppSecret: appSecret,
+	return AppConfig{
+		ServerPort: httpPort, 
+		Dsn: Dsn, 
+		AppSecret: appSecret,
 		TwilioAccountSid:      os.Getenv("TWILIO_ACCOUNT_SID"),
 		TwilioAuthToken:       os.Getenv("TWILIO_AUTH_TOKEN"),
 		TwilioFromPhoneNumber: os.Getenv("TWILIO_FROM_PHONE_NUMBER"),
