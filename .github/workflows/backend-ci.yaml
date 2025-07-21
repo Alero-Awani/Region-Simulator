@@ -37,7 +37,7 @@ jobs:
           file: src/Dockerfile 
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ecommerce-backend:${{ env.SHORT_SHA }}
-      - name: Update Kubernetes deployment file
+      - name: Update Kubernetes deployment files
         run: |
           sed -i 's|image: ${{ secrets.DOCKER_USERNAME }}/ecommerce-backend:.*|image: ${{ secrets.DOCKER_USERNAME }}/ecommerce-backend:${{ env.SHORT_SHA }}|g' golang-backend/deployment.yaml
       - name: Commit and push updated manifest

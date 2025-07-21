@@ -1,5 +1,9 @@
+# IDE/Editor config
 front-end
 .git
 .gitignore
 .idea
 /internal/.DS_Store
+
+#Environment varibales
+.env
