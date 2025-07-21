@@ -27,47 +27,6 @@ spec:
           #   requests:
           #     memory: "64Mi"
           #     cpu: "250m"
-          env:
-            - name: ENV
-              value: "production"
-            - name: DB_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: golang-backend-config
-                  key: DB_HOST
-            - name: DB_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: golang-backend-config
-                  key: DB_PORT
-            - name: DB_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: golang-backend-config
-                  key: DB_NAME
-            - name: DB_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: golang-backend-config
-                  key: DB_USER
-
-            - name: DB_PASSWORD
-              valueFrom:
-                configMapKeyRef:
-                  name: golang-backend-config
-                  key: DB_PASSWORD
-            - name: CORS_ALLOWED_ORIGINS
-              valueFrom:
-                configMapKeyRef:
-                  name: golang-backend-config
-                  key: CORS_ALLOWED_ORIGINS
-            - name: CORS_ALLOWED_METHODS
-              valueFrom:
-                configMapKeyRef:
-                  name: golang-backend-config
-                  key: CORS_ALLOWED_METHODS
-            - name: CORS_ALLOWED_HEADERS
-              valueFrom:
-                configMapKeyRef:
-                  name: golang-backend-config
-                  key: CORS_ALLOWED_HEADERS
+          envFrom:
+            - configMapRef:
+                name: golang-backend-config
