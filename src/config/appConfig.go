@@ -22,8 +22,10 @@ type AppConfig struct {
 
 func SetupEnv() (cfg AppConfig, err error) {
 	log.Println("Getting Environment Variables from configmap")
+
 	if os.Getenv("APP_ENV") == "dev" {
-		godotenv.Load(".env")
+		err = godotenv.Load(".env")
+		log.Fatalf("Error loading .env file: %v\n", err)
 	}
 
 	httpPort := os.Getenv("HTTP_PORT")
