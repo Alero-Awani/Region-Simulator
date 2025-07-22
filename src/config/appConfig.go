@@ -27,7 +27,7 @@ func SetupEnv() (cfg AppConfig, err error) {
 		err = godotenv.Load(".env")
 		log.Fatalf("Error loading .env file: %v\n", err)
 	}
-
+	log.Println("Loading http port from environment variables\n")
 	httpPort := os.Getenv("HTTP_PORT")
 
 	if len(httpPort) < 1 {
