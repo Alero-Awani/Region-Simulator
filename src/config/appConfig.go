@@ -27,12 +27,12 @@ func SetupEnv() (cfg AppConfig, err error) {
 		err = godotenv.Load(".env")
 		log.Fatalf("Error loading .env file: %v\n", err)
 	}
-	log.Println("Loading http port from environment variables\n")
-	httpPort := os.Getenv("HTTP_PORT")
+	// log.Println("Loading http port from environment variables\n")
+	// httpPort := os.Getenv("HTTP_PORT")
 
-	if len(httpPort) < 1 {
-		return AppConfig{}, errors.New("env variables not found")
-	}
+	// if len(httpPort) < 1 {
+	// 	return AppConfig{}, errors.New("env variables not found")
+	// }
 
 	// Dev
 	// Dsn := os.Getenv("DSN")
@@ -52,7 +52,7 @@ func SetupEnv() (cfg AppConfig, err error) {
 	log.Println("The Database host is:", dbHost)
 
 	if dbHost == "" || dbUser == "" || dbPassword == "" || dbName == "" || dbPort == "" {
-		return AppConfig{}, errors.New("required database environment variables not found (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT)")
+		return AppConfig{}, fmt.Errorf("required database environment variables not found (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT)")
 	}
 
 	fmt.Printf("Database connection string: host=%s user=%s dbname=%s port=%s\n", 
