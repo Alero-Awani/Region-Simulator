@@ -41,7 +41,7 @@ func SetupEnv() (cfg AppConfig, err error) {
 	// }
 
 	// Production
-	log.Print("Loading database connection string from environment variables\n")
+	log.Print("Loading database connection string from environment variables configmaps\n")
 	
 	dbHost := os.Getenv("DB_HOST")
 	dbUser := os.Getenv("DB_USER")
@@ -67,7 +67,7 @@ func SetupEnv() (cfg AppConfig, err error) {
 	}
 
 	return AppConfig{
-		ServerPort: httpPort, 
+		// ServerPort: httpPort, 
 		Dsn: Dsn, 
 		AppSecret: appSecret,
 		TwilioAccountSid:      os.Getenv("TWILIO_ACCOUNT_SID"),
