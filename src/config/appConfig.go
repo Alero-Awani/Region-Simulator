@@ -47,6 +47,8 @@ func SetupEnv() (cfg AppConfig, err error) {
 	dbName := os.Getenv("DB_NAME")
 	dbPort := os.Getenv("DB_PORT")
 
+	log.Println("The Database host is:", dbHost)
+
 	if dbHost == "" || dbUser == "" || dbPassword == "" || dbName == "" || dbPort == "" {
 		return AppConfig{}, errors.New("required database environment variables not found (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT)")
 	}

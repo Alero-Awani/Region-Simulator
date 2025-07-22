@@ -19,7 +19,6 @@ COPY . .
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -o ecommerce
 
-
 # Create a production stage to run the application binary
 FROM alpine:latest AS production
 
